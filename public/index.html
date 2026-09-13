@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#173b32"><title>RUNO</title>
+  <link rel="stylesheet" href="./style.css">
+  <script src="./config.js" defer></script><script src="./sound.js" defer></script><script src="./app.js" defer></script>
+</head>
+<body>
+  <header><a class="wordmark" href="./">RUNO</a><div class="header-right"><span id="connection" hidden></span><button id="rules-open" class="text-button">How to play ↗</button></div></header>
+  <main>
+    <section id="home" class="home">
+      <div class="intro"><h1>Make it<br>your last.</h1><div class="hero-cards" aria-hidden="true"><div class="card red">7</div><div class="card blue">↺</div><div class="card yellow">+2</div></div><p>For 2–8 players.</p></div>
+      <form id="entry" class="entry"><h2>Take a seat.</h2><label for="name">Your name</label><input id="name" maxlength="20" autocomplete="nickname" placeholder="What do we call you?" required><button class="primary" id="create" type="submit">Create a room <span>↗</span></button><div class="divider">or join your friends</div><label for="code">Room code</label><div class="join-row"><input id="code" maxlength="6" placeholder="A1B2C3" autocomplete="off" autocapitalize="characters" spellcheck="false"><button id="join" type="button">Join →</button></div><p class="house-rule"><b>One house rule.</b> Call UNO before playing your <em>last</em> card.</p></form>
+    </section>
+    <section id="room" hidden>
+      <div class="room-bar"><div><span class="eyebrow">ROOM</span> <button id="invite" class="room-code" title="Copy room code" aria-label="Copy room code"></button><span id="round-status"></span></div><button id="leave" class="text-button">Leave table ↗</button></div>
+      <div class="game-layout"><div class="play-area"><div id="players" class="players"></div><div class="table">
+        <div id="lobby" class="lobby"><span class="table-mark">✳</span><h2 id="lobby-title">The table is yours.</h2><p id="lobby-text"></p><button id="start" class="primary">Deal the cards →</button></div>
+        <div id="board" hidden><div id="turn-label" class="turn-label" aria-live="polite"></div><div class="piles"><button id="draw" class="card card-back" aria-label="Draw a card"><span>RUNO</span></button><div id="discard"></div></div><div class="table-info"><span id="active-color"></span><span id="direction"></span></div></div>
+      </div><div id="hand-area" hidden><div class="hand-heading"><div class="hand-actions"><button id="uno" class="uno-button">UNO!</button></div></div><div id="hand" class="hand" aria-label="Your cards"></div></div></div>
+      <aside><div class="aside-heading"><h2>At the table</h2><span>↙</span></div><ol id="log" class="log" aria-live="polite"></ol><div class="chat-heading">Table talk</div><div id="messages" class="messages" role="log" aria-label="Chat messages"></div><form id="chat-form"><input id="chat-input" maxlength="240" placeholder="Say something…" aria-label="Chat message" autocomplete="off"><button aria-label="Send message">↑</button></form></aside></div>
+    </section>
+  </main>
+  <div id="toast" role="status" hidden></div>
+  <dialog id="rules"><button class="close" aria-label="Close rules">×</button><div class="eyebrow">THE HOUSE RULES</div><h2>Keep your friends.<br>Lose your cards.</h2><p>Match the top card’s color or symbol. First to an empty hand wins.</p><ul><li><b>Call UNO with one card left, on your turn, before you play it.</b> Forget, and you draw two cards and lose your turn. Your last card stays in your hand.</li><li>Draw one if you can’t play (or don’t want to). Drawing always ends your turn, even if the new card is playable.</li><li><b>⊘ Skip</b> skips the next player. <b>↺ Reverse</b> changes direction; with two players, it acts as a skip.</li><li><b>+2 / +4</b> makes the next player draw and miss their turn. No stacking. You may play +4 only when you have no cards matching the active color.</li><li><b>Wild</b> lets you choose the next color. A final action card still takes effect.</li><li>Disconnected players keep their seats and turns. The host can remove a player; leaving or removal during a round ends that round.</li></ul><p>Unofficial fan game. Not affiliated with Mattel.</p></dialog>
+  <dialog id="color-picker"><h2>Choose a color.</h2><div class="color-options"><button class="red" data-color="red">Red</button><button class="yellow" data-color="yellow">Yellow</button><button class="green" data-color="green">Green</button><button class="blue" data-color="blue">Blue</button></div><button class="close-color text-button">Cancel</button></dialog>
+</body>
+</html>
