@@ -141,6 +141,12 @@ main { flex: 1; display: flex; flex-direction: column; }
   .table.in-play { grid-template-rows: auto minmax(210px, 1fr) auto; }
 }
 
+.card:not(.card-back)::before { content: none; }
+.color-options button.red:hover { background: var(--red); }
+.color-options button.yellow:hover { background: var(--yellow); }
+.color-options button.green:hover { background: var(--green); }
+.color-options button.blue:hover { background: var(--blue); }
+.color-options button:hover { filter: brightness(1.08); }
 .table { -webkit-user-select: none; user-select: none; }
 .table.round-finished { flex: 1; width: 100%; min-height: 450px; }
 .results { width: min(560px, 100%); text-align: center; padding: 24px 0; }
