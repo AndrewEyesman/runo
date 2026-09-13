@@ -119,7 +119,7 @@ dialog::backdrop { background: #060c09bf; }
   .home { min-height: calc(100svh - 76px); }
 }
 
-.table.in-play .hand-heading { justify-content: flex-end; }
+.table.in-play .hand-heading { justify-content: center; }
 .hand-heading:has(#uno[hidden]) { display: none; }
 
 /* Let the table use the viewport left below the compact navigation. */
