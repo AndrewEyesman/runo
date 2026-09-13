@@ -76,7 +76,6 @@ function cardNode(card, interactive = false) {
   node.setAttribute('aria-label', `${card.color} ${card.value}`);
   node.append(el('span','card-corner', symbols[card.value] || card.value),el('span','card-corner bottom', symbols[card.value] || card.value));
   if (interactive) {
-    node.classList.toggle('unplayable', state.turn === session.playerId && !state.playable.includes(card.id));
     node.disabled = pending || stream?.readyState !== EventSource.OPEN || !state.playable.includes(card.id);
     node.onclick = () => { if (card.color === 'wild') { chosenCard = card.id; $('color-picker').showModal(); } else act('play', { cardId: card.id }); };
   }

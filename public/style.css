@@ -89,7 +89,6 @@ input:focus { border-color: #b7c9b9; box-shadow: 0 0 0 2px #b7c9b920; }
 .uno-button:hover:not(:disabled) { background: #efbe48; }
 button.card-back:hover:not(:disabled) { background: #214d3c; }
 .table.in-play .hand .card:disabled { filter: none; }
-.table.in-play .hand .card.unplayable { filter: saturate(.4) brightness(.45); }
 .table-panel { width: min(440px, calc(100% - 24px)); margin: 12px 12px 12px auto; max-height: calc(100svh - 24px); height: calc(100svh - 24px); padding: 24px; }
 .table-panel aside { border: 0; padding: 0; max-height: none; height: 100%; }
 .table-panel .aside-heading { padding-right: 35px; }
