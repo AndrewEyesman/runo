@@ -23,7 +23,8 @@
 .opponent-hand { pointer-events: none; user-select: none; }
 .opponent.offline { opacity: .55; }
 .opponent-label { margin-bottom: 10px; }
-.opponent .player-name { max-width: 140px; font-size: 12px; }
+.opponent .player-name { max-width: 140px; margin-inline: auto; font-size: 12px; }
+.opponent-hand { margin-inline: auto; }
 .opponent-count { display: block; font-size: 10px; color: #c4d0c5; margin-top: 4px; }
 .opponent-hand { display: grid; grid-template-columns: repeat(var(--cards), minmax(0, 1fr)); width: min(360px, calc(var(--cards) * 38px + 44px)); max-width: 100%; padding-right: 44px; }
 .opponent-card.card { width: 72px; height: 104px; border-width: 4px; border-radius: 7px; font-size: 34px; box-shadow: -2px 2px 4px #0004; }
