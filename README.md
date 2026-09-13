@@ -67,7 +67,7 @@ Health endpoint: `GET /api/health`. Gameplay uses authenticated JSON POSTs and S
 ## Rules and operational choices
 
 - Standard 108-card deck; seven cards per player; each round starts on a number card.
-- Match color or value. Wild chooses a color. Wild +4 is legal only without any card of the active color; this is validated, so no challenge mechanic is needed.
+- Match color or value. Wild chooses a color. Both Wild and Wild +4 are legal on any color during your turn, even with matching colors in hand.
 - No stacking or jump-ins. Drawing one card always ends your turn, even if it is playable.
 - Skip / draw cards skip the next turn. Two-player reverse acts as skip. Final action cards still apply.
 - Host deals and can remove players. Leaving or removal during play cancels the round and returns everyone to the lobby. Disconnection preserves the seat and turn so a refresh doesn't punish a player; no turn timer or automatic kick.

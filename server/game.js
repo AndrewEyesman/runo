@@ -52,7 +52,6 @@ function advance(room, steps = 1) {
   room.turn = (room.turn + room.direction * steps + room.players.length * 3) % room.players.length;
 }
 export function playable(room, player, card) {
-  if (card.value === '+4') return !player.hand.some(c => c.color === room.color);
   return card.color === 'wild' || card.color === room.color || card.value === room.discard.at(-1)?.value;
 }
 export function action(room, player, type, data = {}) {
@@ -73,7 +72,7 @@ export function action(room, player, type, data = {}) {
   if (type !== 'play') fail('Unknown action.');
   const card = player.hand.find(c => c.id === data.cardId);
   if (!card) fail('That card is not in your hand.');
-  if (!playable(room, player, card)) fail('Match the color or symbol. +4 requires no cards of the current color.');
+  if (!playable(room, player, card)) fail('Match the color or symbol, or play a Wild.');
   if (card.color === 'wild' && !COLORS.includes(data.color)) fail('Choose a color.');
   if (player.hand.length === 1 && !player.uno) {
     take(room, player, 2); note(room, `${player.name} forgot UNO. Two-card penalty!`); advance(room); return;

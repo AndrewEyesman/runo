@@ -45,12 +45,24 @@ test('UNO before final card wins, and finishing draw cards still apply', () => {
   action(r,p,'uno'); action(r,p,'play',{cardId:p.hand[0].id});
   assert.equal(r.winner,p.id); assert.equal(r.phase,'finished'); assert.equal(p.wins,1); assert.equal(r.players[1].hand.length,4);
 });
-test('wild +4 is restricted by active color and needs a valid color', () => {
+test('wild +4 is legal with matching colors in hand and needs a valid color', () => {
   const r=setup(), p=r.players[0], wild=card('wild','+4'); p.hand.push(wild);
-  assert.throws(()=>action(r,p,'play',{cardId:wild.id,color:'green'}),/Match/);
-  p.hand=p.hand.filter(c=>c.color!=='red');
   assert.throws(()=>action(r,p,'play',{cardId:wild.id,color:'purple'}),/Choose/);
   action(r,p,'play',{cardId:wild.id,color:'green'}); assert.equal(r.color,'green'); assert.equal(r.players[1].hand.length,6); assert.equal(r.turn,2);
+});
+test('both wild types remain playable after choosing a color on a wild +4', () => {
+  const r=setup(2), p=r.players[0];
+  const first=card('wild','+4'), nextWild=card('wild','wild'), nextFour=card('wild','+4');
+  p.hand.push(first,nextWild,nextFour);
+  action(r,p,'play',{cardId:first.id,color:'red'});
+  assert.equal(r.turn,0);
+  const available=snapshot(r,p.id).playable;
+  assert.ok(available.includes(nextWild.id));
+  assert.ok(available.includes(nextFour.id));
+  action(r,p,'play',{cardId:nextFour.id,color:'blue'});
+  assert.equal(r.color,'blue');
+  action(r,p,'play',{cardId:nextWild.id,color:'green'});
+  assert.equal(r.color,'green'); assert.equal(r.turn,1);
 });
 test('drawing a playable card ends the turn and pass is not an action', () => {
   const r=setup(), p=r.players[0]; r.pile.push(card('red','8')); action(r,p,'draw');
