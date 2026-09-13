@@ -1,6 +1,6 @@
 const $ = id => document.getElementById(id);
 const API = (window.GAME_SERVER || location.origin).replace(/\/$/, '');
-let session, state, stream, pending = false, chosenCard, toastTimer;
+let session, state, stream, pending = false, chosenCard, toastTimer, sessionExpired = false;
 try { session = JSON.parse(localStorage.getItem('last-card-session')); $('name').value = localStorage.getItem('last-card-name') || ''; } catch {}
 const inviteCode = new URL(location.href).searchParams.get('room');
 if (inviteCode) $('code').value = inviteCode.toUpperCase();
@@ -9,7 +9,7 @@ function saveSession() { try { if (session) localStorage.setItem('last-card-sess
 async function request(path, data = {}) {
   const response = await fetch(`${API}/api/${path}`, { method: 'POST', headers: { 'Content-Type': 'application/json', ...(session ? { Authorization: `Bearer ${session.token}` } : {}) }, body: JSON.stringify(data), signal: AbortSignal.timeout(10000) });
   const result = await response.json();
-  if (!response.ok) { if (response.status === 401) reset(); throw new Error(result.error || 'Something went wrong.'); }
+  if (!response.ok) { if (response.status === 401) expireSession(); throw new Error(result.error || 'Something went wrong.'); }
   return result;
 }
 async function run(work) {
@@ -19,27 +19,39 @@ async function run(work) {
   finally { pending = false; if (state) render(); $('create').disabled = false; $('join').disabled = false; }
 }
 function reset() {
+  sessionExpired = false;
   document.body.classList.remove('in-room');
   document.getElementById('table-panel')?.close();
   stream?.close(); stream = null; session = null; state = null; saveSession();
   $('room').hidden = true; $('home').hidden = false; $('connection').hidden = true; $('color-picker').close();
 }
+function expireSession() {
+  if (state?.phase !== 'finished') { reset(); return; }
+  // Preserve the result if a deployment or server restart invalidates the room.
+  sessionExpired = true; stream?.close(); stream = null;
+  try { localStorage.removeItem('last-card-session'); } catch {}
+  $('connection').textContent = 'Room disconnected'; render();
+}
 function connect() {
+  sessionExpired = false;
   document.body.classList.add('in-room');
   stream?.close(); $('home').hidden = true; $('room').hidden = false; $('connection').hidden = false; $('connection').textContent = 'Connecting…';
   stream = new EventSource(`${API}/api/events?token=${encodeURIComponent(session.token)}`);
+  const connection = stream;
   let firstSnapshot = true;
   stream.onmessage = event => {
+    if (connection !== stream || !session) return;
     const next = JSON.parse(event.data);
     window.gameAudio?.update(firstSnapshot ? null : state, next, session.playerId);
     firstSnapshot = false; state = next;
     $('connection').textContent = '● Connected'; render();
   };
-  stream.addEventListener('removed', () => { reset(); toast('You have left the room.'); });
+  stream.addEventListener('removed', () => { if (connection === stream) { reset(); toast('You have left the room.'); } });
   stream.onerror = () => {
+    if (connection !== stream || !session) return;
     $('connection').textContent = 'Reconnecting…';
     // EventSource hides HTTP status. Probe the authenticated endpoint to detect expired sessions.
-    fetch(`${API}/api/action`, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session?.token}` }, body: '{}', signal: AbortSignal.timeout(5000) }).then(r => { if (r.status === 401) { reset(); toast('Your session expired. Please join again.'); } }).catch(() => {});
+    fetch(`${API}/api/action`, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.token}` }, body: '{}', signal: AbortSignal.timeout(5000) }).then(r => { if (connection === stream && r.status === 401) { expireSession(); toast('The server no longer has this room.'); } }).catch(() => {});
     if (state) render();
   };
   stream.onopen = () => { $('connection').textContent = '● Connected'; if (state) render(); };
@@ -83,6 +95,22 @@ function cardNode(card, interactive = false) {
 }
 let chatSignature = '';
 const table = document.querySelector('.table');
+const results = el('section', 'results');
+results.id = 'results'; results.hidden = true;
+results.setAttribute('aria-live', 'polite');
+const resultTitle = el('h1', 'result-title');
+const resultMessage = el('p', 'result-message');
+const standings = el('div', 'standings');
+const replay = el('button', 'primary', 'Play again');
+replay.id = 'replay';
+const replayStatus = el('p', 'replay-status');
+replay.onclick = () => {
+  if (!sessionExpired) { act('start'); return; }
+  const name = state.players.find(p => p.id === session.playerId)?.name || 'Player';
+  run(async () => { session = await request('create', { name }); state = null; saveSession(); connect(); });
+};
+results.append(resultTitle, resultMessage, standings, replay, replayStatus);
+table.append(results);
 const opponents = el('div', 'opponents');
 table.append(opponents, $('hand-area'));
 const sidePanel = document.querySelector('aside');
@@ -132,10 +160,12 @@ function render() {
   const me = state.players.find(p => p.id === session.playerId); if (!me) return;
   const turn = state.players.find(p => p.id === state.turn);
   const playing = state.phase === 'playing'; const myTurn = playing && state.turn === me.id;
+  const finished = state.phase === 'finished';
   const blocked = pending || stream?.readyState !== EventSource.OPEN;
   table.classList.toggle('in-play', playing);
-  $('room').classList.toggle('playing', playing);
-  if (playing) sidePanel.querySelector('.aside-heading').after($('players'));
+  table.classList.toggle('round-finished', finished);
+  $('room').classList.toggle('playing', playing || finished);
+  if (playing || finished) sidePanel.querySelector('.aside-heading').after($('players'));
   else table.before($('players'));
   opponents.hidden = !playing;
   if (playing) renderOpponents(me);
@@ -147,8 +177,25 @@ function render() {
     if (state.host === me.id && p.id !== me.id) { const kick = el('button','kick','×'); kick.setAttribute('aria-label', `Remove ${p.name}`); kick.onclick = () => { if (confirm(`Remove ${p.name}?${playing ? ' This ends the current round.' : ''}`)) run(() => request('kick', { playerId: p.id })); }; node.append(kick); }
     return node;
   }));
-  $('lobby').hidden = playing; $('board').hidden = !playing; $('hand-area').hidden = !playing;
-  if (!playing) {
+  $('lobby').hidden = playing || finished; $('board').hidden = !playing; $('hand-area').hidden = !playing;
+  results.hidden = !finished;
+  if (finished) {
+    $('color-picker').close();
+    const winner = state.players.find(p => p.id === state.winner);
+    const won = state.winner === me.id;
+    results.classList.toggle('victory', won);
+    resultTitle.textContent = won ? 'Victory!' : 'Defeat';
+    resultMessage.textContent = won ? 'You played your last card.' : `${winner?.name || 'Your opponent'} won the round.`;
+    standings.replaceChildren(...[...state.players].sort((a, b) => (b.id === state.winner) - (a.id === state.winner) || a.count - b.count).map(p => {
+      const row = el('div', 'standing');
+      row.append(el('span', '', `${p.name}${p.id === me.id ? ' (you)' : ''}`), el('span', '', p.id === state.winner ? 'Winner' : `${p.count} cards left`), el('span', '', `${p.wins} win${p.wins === 1 ? '' : 's'}`));
+      return row;
+    }));
+    replay.hidden = !sessionExpired && state.host !== me.id;
+    replay.disabled = pending || (!sessionExpired && (blocked || state.players.length < 2 || state.players.some(p => !p.online)));
+    replay.textContent = sessionExpired ? 'Create a new room' : 'Play again';
+    replayStatus.textContent = sessionExpired ? 'The server restarted or this room expired. Create a new room to continue.' : state.players.length < 2 ? 'Invite another player to play again.' : state.players.some(p => !p.online) ? 'Waiting for players to reconnect. The host can remove them in Chat & players.' : state.host !== me.id ? 'Waiting for the host to start the next round.' : 'Same room. Same players.';
+  } else if (!playing) {
     const winner = state.players.find(p => p.id === state.winner);
     $('lobby-title').textContent = state.phase === 'finished' ? `${winner?.name || 'Someone'} wins.` : 'The table is yours.';
     $('lobby-text').textContent = state.players.length < 2 ? 'Copy the room code above and invite a friend.' : state.host === me.id ? `${state.players.length} players at the table. Deal when everyone is here.` : 'Waiting for the host to deal.';

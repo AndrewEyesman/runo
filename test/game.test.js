@@ -93,3 +93,15 @@ test('snapshot exposes only viewer hand, not secrets or deck order', () => {
   assert.equal(s.players[1].hand,undefined); assert.equal(s.players[1].token,undefined); assert.equal(s.pile,undefined);
   assert.equal(snapshot(r,'p1').playable.length,0);
 });
+test('a completed round can be replayed in the same room with wins retained', () => {
+  const r=setup(2), p=r.players[0];
+  const ids=r.players.map(player=>player.id);
+  p.hand=[card('red','9')];
+  action(r,p,'uno'); action(r,p,'play',{cardId:p.hand[0].id});
+  assert.equal(r.phase,'finished'); assert.equal(r.winner,p.id);
+  assert.throws(()=>action(r,r.players[1],'start'),/host/);
+  action(r,p,'start');
+  assert.equal(r.phase,'playing'); assert.equal(r.winner,null);
+  assert.deepEqual(r.players.map(player=>player.id),ids);
+  assert.equal(p.wins,1); assert.ok(r.players.every(player=>player.hand.length===7));
+});
