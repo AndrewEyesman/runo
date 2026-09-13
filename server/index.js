@@ -45,6 +45,12 @@ const server = http.createServer(async (req, res) => {
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
     if (req.method === 'OPTIONS') { res.writeHead(204); res.end(); return; }
     if (url.pathname === '/api/health' && req.method === 'GET') return send(res, 200, { ok: true });
+    if (url.pathname === '/api/lobbies' && req.method === 'GET') {
+      const lobbies = [...rooms.values()]
+        .filter(room => room.phase !== 'playing' && room.players.length < 8 && room.players.some(p => p.online))
+        .map(room => ({ code: room.code, host: room.players.find(p => p.id === room.host)?.name || 'Player', players: room.players.length, capacity: 8 }));
+      return send(res, 200, { lobbies });
+    }
     try {
       if (url.pathname === '/api/events' && req.method === 'GET') {
         const session = sessions.get(url.searchParams.get('token'));

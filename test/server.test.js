@@ -28,11 +28,15 @@ test('HTTP multiplayer lifecycle, private snapshots, reconnect, chat, host contr
   assert.equal((await post('action',{type:'draw'})).status,401);
   const a=await post('create',{name:'Ada'}), b=await post('join',{name:'Bea',code:a.code});
   assert.equal(a.status,200);assert.equal(b.status,200);
+  const lobbies = async () => (await (await fetch(`${base}/api/lobbies`)).json()).lobbies;
+  assert.deepEqual(await lobbies(), []);
   const sa=await subscribe(a.token),sb=await subscribe(b.token);
   await until(()=>sa.snapshots.at(-1)?.players.every(p=>p.online));
+  assert.deepEqual(await lobbies(), [{ code: a.code, host: 'Ada', players: 2, capacity: 8 }]);
   assert.equal((await post('action',{type:'start'},b.token)).status,400);
   assert.equal((await post('action',{type:'start'},a.token)).status,200);
   await until(()=>sb.snapshots.at(-1)?.phase==='playing');
+  assert.deepEqual(await lobbies(), []);
   const view=sb.snapshots.at(-1);assert.equal(view.hand.length,7);assert.equal(view.players[0].hand,undefined);assert.equal(view.players[0].token,undefined);
   assert.equal((await post('join',{name:'Late',code:a.code})).status,400);
   assert.equal((await post('action',{type:'draw'},b.token)).status,400);
@@ -46,5 +50,6 @@ test('HTTP multiplayer lifecycle, private snapshots, reconnect, chat, host contr
   assert.equal((await post('leave',{},a.token)).status,200);
   await until(()=>resumed.snapshots.at(-1)?.host===b.playerId);
   assert.equal(resumed.snapshots.at(-1).phase,'lobby');
+  assert.deepEqual(await lobbies(), [{ code: a.code, host: 'Bea', players: 1, capacity: 8 }]);
   assert.equal((await post('action',{type:'draw'},a.token)).status,401);
 });

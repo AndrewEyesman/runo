@@ -160,3 +160,15 @@ main { flex: 1; display: flex; flex-direction: column; }
 .results .primary { min-width: 180px; }
 .replay-status { color: #c4d0c5; font-size: 12px; line-height: 1.6; margin-top: 16px; }
 @media(max-width: 680px) { .standing { font-size: 11px; gap: 10px; } }
+
+.lobby-browser { margin-top: 26px; padding-top: 20px; border-top: 1px solid var(--line); }
+.lobby-browser-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.entry .lobby-browser h2 { font-size: 18px; margin: 0; letter-spacing: -.4px; }
+.lobby-list { max-height: 240px; overflow-y: auto; }
+.lobby-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 0; border-bottom: 1px solid var(--line); }
+.lobby-row:last-child { border-bottom: 0; }
+.lobby-info { min-width: 0; display: grid; gap: 5px; }
+.lobby-info strong { font-size: 13px; overflow-wrap: anywhere; }
+.lobby-info span, .lobby-status { font-size: 12px; color: var(--muted); }
+.lobby-row button { padding: 8px 16px; }
+.lobby-status:empty { display: none; }

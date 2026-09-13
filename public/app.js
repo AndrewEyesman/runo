@@ -24,6 +24,7 @@ function reset() {
   document.getElementById('table-panel')?.close();
   stream?.close(); stream = null; session = null; state = null; saveSession();
   $('room').hidden = true; $('home').hidden = false; $('connection').hidden = true; $('color-picker').close();
+  refreshLobbies();
 }
 function expireSession() {
   if (state?.phase !== 'finished') { reset(); return; }
@@ -222,4 +223,42 @@ function render() {
   }
   $('chat-form').querySelector('button').disabled = blocked;
 }
+const lobbyBrowser = el('section', 'lobby-browser');
+const lobbyHeading = el('div', 'lobby-browser-heading');
+const refreshButton = el('button', 'text-button', 'Refresh');
+refreshButton.type = 'button';
+const lobbyList = el('div', 'lobby-list');
+lobbyList.id = 'lobby-list';
+const lobbyStatus = el('p', 'lobby-status', 'Loading rooms…');
+lobbyStatus.setAttribute('role', 'status');
+lobbyHeading.append(el('h2', '', 'Active lobbies'), refreshButton);
+lobbyBrowser.append(lobbyHeading, lobbyList, lobbyStatus);
+$('entry').append(lobbyBrowser);
+let loadingLobbies = false;
+async function refreshLobbies() {
+  if (loadingLobbies || $('home').hidden || document.hidden) return;
+  loadingLobbies = true; refreshButton.disabled = true;
+  try {
+    const response = await fetch(`${API}/api/lobbies`, { signal: AbortSignal.timeout(10000) });
+    if (!response.ok) throw new Error('Could not load rooms.');
+    const { lobbies } = await response.json();
+    lobbyList.replaceChildren(...lobbies.map(lobby => {
+      const row = el('div', 'lobby-row');
+      const info = el('div', 'lobby-info');
+      info.append(el('strong', '', `${lobby.host}’s room`), el('span', '', `${lobby.players}/${lobby.capacity} players`));
+      const button = el('button', '', 'Join'); button.type = 'button';
+      button.setAttribute('aria-label', `Join ${lobby.host}'s room`);
+      button.onclick = () => { $('code').value = lobby.code; join(false); };
+      row.append(info, button); return row;
+    }));
+    lobbyStatus.textContent = lobbies.length ? '' : 'No open rooms. Create one to get started.';
+  } catch {
+    lobbyList.replaceChildren();
+    lobbyStatus.textContent = 'Could not load rooms. Try refreshing.';
+  } finally { loadingLobbies = false; refreshButton.disabled = false; }
+}
+refreshButton.onclick = refreshLobbies;
+setInterval(refreshLobbies, 5000);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) refreshLobbies(); });
 if (session?.token) connect();
+else refreshLobbies();

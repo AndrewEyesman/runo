@@ -1,6 +1,6 @@
 # RUNO
 
-A small multiplayer UNO-style game. Static frontend, authoritative Node.js backend, no npm dependencies. Private rooms for 2–8 players, invite links, chat, rematches, session reconnects, host controls, and session win counts. No accounts required.
+A small multiplayer UNO-style game. Static frontend, authoritative Node.js backend, no npm dependencies. Rooms for 2–8 players, invite links, chat, rematches, session reconnects, host controls, and session win counts. No accounts required. The home screen lists joinable rooms by host name and refreshes every five seconds; room codes still work.
 
 **House rule: call UNO on your turn before playing the last card.** Attempting to play it without calling draws two penalty cards and ends the turn; the attempted card stays in hand.
 
@@ -71,8 +71,8 @@ Health endpoint: `GET /api/health`. Gameplay uses authenticated JSON POSTs and S
 - No stacking or jump-ins. Drawing one card always ends your turn, even if it is playable.
 - Skip / draw cards skip the next turn. Two-player reverse acts as skip. Final action cards still apply.
 - Host deals and can remove players. Leaving or removal during play cancels the round and returns everyone to the lobby. Disconnection preserves the seat and turn so a refresh doesn't punish a player; no turn timer or automatic kick.
-- Wins are counted per seat, not by card points. No bots, public matchmaking, spectators, or persistent accounts.
+- Wins are counted per seat, not by card points. No bots, automatic matchmaking, spectators, or persistent accounts.
 - State lives in one Node process. A restart clears rooms; completely offline rooms expire after two hours. Use a single instance; persistent storage and shared state would be needed for restart recovery or multiple instances.
-- An invite link admits anyone who has it while the round is not in progress. Treat room codes as invitations, not passwords.
+- Open rooms with at least one connected player appear in the public lobby list. Anyone can join from the list or by room code while space is available and a round is not in progress.
 
 The visual style uses CSS cards and optional Google Fonts, with local system font fallbacks. Unofficial fan project; no Mattel artwork or logos.
