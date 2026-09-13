@@ -32,7 +32,7 @@ test('HTTP multiplayer lifecycle, private snapshots, reconnect, chat, host contr
   assert.deepEqual(await lobbies(), []);
   const sa=await subscribe(a.token),sb=await subscribe(b.token);
   await until(()=>sa.snapshots.at(-1)?.players.every(p=>p.online));
-  assert.deepEqual(await lobbies(), [{ code: a.code, host: 'Ada', players: 2, capacity: 8 }]);
+  assert.deepEqual(await lobbies(), [{ code: a.code, host: 'Ada', players: 2, capacity: 4 }]);
   assert.equal((await post('action',{type:'start'},b.token)).status,400);
   assert.equal((await post('action',{type:'start'},a.token)).status,200);
   await until(()=>sb.snapshots.at(-1)?.phase==='playing');
@@ -50,6 +50,12 @@ test('HTTP multiplayer lifecycle, private snapshots, reconnect, chat, host contr
   assert.equal((await post('leave',{},a.token)).status,200);
   await until(()=>resumed.snapshots.at(-1)?.host===b.playerId);
   assert.equal(resumed.snapshots.at(-1).phase,'lobby');
-  assert.deepEqual(await lobbies(), [{ code: a.code, host: 'Bea', players: 1, capacity: 8 }]);
+  assert.deepEqual(await lobbies(), [{ code: a.code, host: 'Bea', players: 1, capacity: 4 }]);
   assert.equal((await post('action',{type:'draw'},a.token)).status,401);
+  for (const name of ['Cal', 'Dee', 'Eli']) assert.equal((await post('join', { name, code: a.code })).status, 200);
+  assert.deepEqual(await lobbies(), []);
+  const fifth = await post('join', { name: 'Fay', code: a.code });
+  assert.equal(fifth.status, 400);
+  assert.match(fifth.error, /full \(4 players\)/);
+
 });

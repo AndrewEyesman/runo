@@ -47,8 +47,8 @@ const server = http.createServer(async (req, res) => {
     if (url.pathname === '/api/health' && req.method === 'GET') return send(res, 200, { ok: true });
     if (url.pathname === '/api/lobbies' && req.method === 'GET') {
       const lobbies = [...rooms.values()]
-        .filter(room => room.phase !== 'playing' && room.players.length < 8 && room.players.some(p => p.online))
-        .map(room => ({ code: room.code, host: room.players.find(p => p.id === room.host)?.name || 'Player', players: room.players.length, capacity: 8 }));
+        .filter(room => room.phase !== 'playing' && room.players.length < 4 && room.players.some(p => p.online))
+        .map(room => ({ code: room.code, host: room.players.find(p => p.id === room.host)?.name || 'Player', players: room.players.length, capacity: 4 }));
       return send(res, 200, { lobbies });
     }
     try {
@@ -82,7 +82,7 @@ const server = http.createServer(async (req, res) => {
           room = rooms.get(String(data.code || '').toUpperCase());
           if (!room) throw new Error('Room not found. Check the code.');
           if (room.phase === 'playing') throw new Error('This round is in progress. Join after it ends.');
-          if (room.players.length >= 8) throw new Error('This room is full (8 players).');
+          if (room.players.length >= 4) throw new Error('This room is full (4 players).');
         }
         const token = randomBytes(32).toString('hex');
         const player = { id: randomUUID(), token, name, hand: [], online: false, uno: false, wins: 0 };

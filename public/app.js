@@ -130,6 +130,13 @@ const roomNavigation = el('div', 'room-navigation');
 roomNavigation.append(panelToggle, $('leave'));
 document.querySelector('.header-right').append(roomNavigation);
 sidePanel.querySelector('.aside-heading').after($('players'));
+const lobbySeats = el('section', 'lobby-seats');
+lobbySeats.setAttribute('aria-label', 'Players in the room');
+const seatHeading = el('div', 'seat-heading');
+const seatCount = el('span', 'seat-count');
+seatHeading.append(el('h2', '', 'At the table'), seatCount);
+lobbySeats.append(seatHeading);
+document.querySelector('.play-area').append(lobbySeats);
 function renderOpponents(me) {
   const mine = state.players.findIndex(p => p.id === me.id);
   // Rotate the seating order so every viewer sits at the bottom.
@@ -167,7 +174,9 @@ function render() {
   table.classList.toggle('round-finished', finished);
   $('room').classList.toggle('playing', playing || finished);
   if (playing || finished) sidePanel.querySelector('.aside-heading').after($('players'));
-  else table.before($('players'));
+  else lobbySeats.append($('players'));
+  lobbySeats.hidden = playing || finished;
+  seatCount.textContent = `${state.players.length} / 4`;
   opponents.hidden = !playing;
   if (playing) renderOpponents(me);
   $('invite').textContent = `${state.code} ⧉`; $('round-status').textContent = playing ? 'In play' : state.phase === 'finished' ? 'Round complete' : 'Waiting room';
@@ -178,6 +187,13 @@ function render() {
     if (state.host === me.id && p.id !== me.id) { const kick = el('button','kick','×'); kick.setAttribute('aria-label', `Remove ${p.name}`); kick.onclick = () => { if (confirm(`Remove ${p.name}?${playing ? ' This ends the current round.' : ''}`)) run(() => request('kick', { playerId: p.id })); }; node.append(kick); }
     return node;
   }));
+  if (!playing && !finished) {
+    for (let seat = state.players.length; seat < 4; seat++) {
+      const empty = el('div', 'player empty-seat');
+      empty.append(el('span', 'player-name', 'Open seat'), el('span', 'player-meta', 'Waiting for a friend'));
+      $('players').append(empty);
+    }
+  }
   $('lobby').hidden = playing || finished; $('board').hidden = !playing; $('hand-area').hidden = !playing;
   results.hidden = !finished;
   if (finished) {

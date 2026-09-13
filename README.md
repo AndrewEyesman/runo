@@ -1,6 +1,6 @@
 # RUNO
 
-A small multiplayer UNO-style game. Static frontend, authoritative Node.js backend, no npm dependencies. Rooms for 2–8 players, invite links, chat, rematches, session reconnects, host controls, and session win counts. No accounts required. The home screen lists joinable rooms by host name and refreshes every five seconds; room codes still work.
+A small multiplayer UNO-style game. Static frontend, authoritative Node.js backend, no npm dependencies. Rooms for 2-4 players, invite links, chat, rematches, session reconnects, host controls, and session win counts. No accounts required. The home screen lists joinable rooms by host name and refreshes every five seconds; room codes still work.
 
 **House rule: call UNO on your turn before playing the last card.** Attempting to play it without calling draws two penalty cards and ends the turn; the attempted card stays in hand.
 
