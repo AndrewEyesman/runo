@@ -6,6 +6,7 @@ import { makeRoom, action, snapshot, note } from './game.js';
 
 const port = Number(process.env.PORT || 3000);
 const origins = (process.env.ALLOWED_ORIGINS || `http://localhost:${port},http://127.0.0.1:${port}`).split(',').map(s => s.trim());
+if (process.env.RENDER_EXTERNAL_URL) origins.push(new URL(process.env.RENDER_EXTERNAL_URL).origin);
 const rooms = new Map(); const sessions = new Map(); const rates = new Map();
 const root = fileURLToPath(new URL('../public/', import.meta.url));
 function send(res, status, value) { res.writeHead(status, { 'Content-Type': 'application/json' }); res.end(JSON.stringify(value)); }

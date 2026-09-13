@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: runo
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: 22
+      - key: ALLOWED_ORIGINS
+        value: https://andreweyesman.github.io
